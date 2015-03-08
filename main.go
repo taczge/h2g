@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -39,11 +40,14 @@ var intToMonth = map[int]time.Month{
 func toDate(line string) time.Time {
 	date := strings.TrimPrefix(line, "BASENAME: ")
 
-	y, _ := strconv.Atoi(date[0:4])
-	m, _ := strconv.Atoi(date[5:7])
-	d, _ := strconv.Atoi(date[8:10])
+	year, _ := strconv.Atoi(date[0:4])
+	month, _ := strconv.Atoi(date[5:7])
+	day, _ := strconv.Atoi(date[8:10])
+	hour, _ := strconv.Atoi(date[11:13])
+	min, _ := strconv.Atoi(date[13:15])
+	sec, _ := strconv.Atoi(date[15:17])
 
-	return time.Date(y, intToMonth[m], d, 0, 0, 0, 0, time.UTC)
+	return time.Date(year, intToMonth[month], day, hour, min, sec, 0, time.UTC)
 }
 
 type Entry struct {
@@ -60,6 +64,8 @@ func (e *Entry) WriteToFile() {
 	}
 	defer f.Close()
 
+	f.WriteString(fmt.Sprintf("TITLE: %s\n", e.Title))
+	f.WriteString(fmt.Sprintf("Date: %s\n", e.Date))
 	f.WriteString(e.Body)
 }
 
