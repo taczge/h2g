@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -22,33 +21,15 @@ func toId(line string) string {
 	return strings.Replace(name, "/", "-", -1)
 }
 
-var intToMonth = map[int]time.Month{
-	1:  time.January,
-	2:  time.February,
-	3:  time.March,
-	4:  time.April,
-	5:  time.May,
-	6:  time.June,
-	7:  time.July,
-	8:  time.August,
-	9:  time.September,
-	10: time.October,
-	11: time.November,
-	12: time.December,
-}
-
 func toDate(line string) time.Time {
 	date := strings.TrimPrefix(line, "BASENAME: ")
+	format := "2006/01/02/150405"
+	time, err := time.Parse(format, date)
+	if err != nil {
+		panic(err)
+	}
 
-	// ex) date := "2015/03/08/191003"
-	year, _ := strconv.Atoi(date[0:4])
-	month, _ := strconv.Atoi(date[5:7])
-	day, _ := strconv.Atoi(date[8:10])
-	hour, _ := strconv.Atoi(date[11:13])
-	min, _ := strconv.Atoi(date[13:15])
-	sec, _ := strconv.Atoi(date[15:17])
-
-	return time.Date(year, intToMonth[month], day, hour, min, sec, 0, time.UTC)
+	return time
 }
 
 type Entry struct {
