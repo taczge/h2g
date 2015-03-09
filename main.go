@@ -40,6 +40,7 @@ var intToMonth = map[int]time.Month{
 func toDate(line string) time.Time {
 	date := strings.TrimPrefix(line, "BASENAME: ")
 
+	// ex) date := "2015/03/08/191003"
 	year, _ := strconv.Atoi(date[0:4])
 	month, _ := strconv.Atoi(date[5:7])
 	day, _ := strconv.Atoi(date[8:10])
@@ -57,19 +58,20 @@ type Entry struct {
 	Body  string
 }
 
-func (e *Entry) WriteToFile() {
-	f, err := os.Create(e.Id)
+func (e *Entry) WriteToFile(outdir string) {
+	outpath := fmt.Sprintf("%s/%s", outdir, e.Id)
+	f, err := os.Create(outpath)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
 	f.WriteString(fmt.Sprintf("TITLE: %s\n", e.Title))
-	f.WriteString(fmt.Sprintf("Date: %s\n", e.Date))
+	f.WriteString(fmt.Sprintf("DATE: %s\n", e.Date))
 	f.WriteString(e.Body)
 }
 
-func extractEntryData(filename string) {
+func split(filename, outdir string) {
 	fp, err := os.Open(filename)
 	if err != nil {
 		panic(err)
@@ -101,7 +103,7 @@ func extractEntryData(filename string) {
 
 		if strings.HasPrefix(line, "--------") {
 			entry.Body = body.String()
-			entry.WriteToFile()
+			entry.WriteToFile(outdir)
 			body.Reset()
 			isInBody = false
 			continue
@@ -123,5 +125,10 @@ func extractEntryData(filename string) {
 }
 
 func main() {
-	extractEntryData("n91.hatenablog.com.export.txt")
+	if len(os.Args) < 3 {
+		fmt.Println("Useage: h2g INPUT_FILE OUT_DIR")
+		os.Exit(1)
+	}
+
+	split(os.Args[1], os.Args[2])
 }
