@@ -15,15 +15,16 @@ func toTitle(line string) string {
 	return strings.TrimSpace(title)
 }
 
-func toId(line string) string {
+func toIdWithBasename(line string) string {
 	name := strings.TrimPrefix(line, "BASENAME: ")
 
 	return strings.Replace(name, "/", "-", -1)
 }
 
-func toDate(line string) time.Time {
-	date := strings.TrimPrefix(line, "BASENAME: ")
-	format := "2006/01/02/150405"
+func toTimeWithDate(line string) time.Time {
+	date := strings.TrimPrefix(line, "DATE: ")
+	format := "01/02/2006 15:04:05"
+
 	time, err := time.Parse(format, date)
 	if err != nil {
 		panic(err)
@@ -47,9 +48,10 @@ func (e *Entry) WriteToFile(outdir string) {
 	}
 	defer f.Close()
 
+	f.WriteString(fmt.Sprintf("ID: %s\n", e.Id))
 	f.WriteString(fmt.Sprintf("TITLE: %s\n", e.Title))
 	f.WriteString(fmt.Sprintf("DATE: %s\n", e.Date))
-	f.WriteString(e.Body)
+	f.WriteString(fmt.Sprintf("BODY:\n%s\n", e.Body))
 }
 
 func split(filename, outdir string) {
@@ -67,8 +69,7 @@ func split(filename, outdir string) {
 		line := scanner.Text()
 
 		if strings.HasPrefix(line, "BASENAME: ") {
-			entry.Id = toId(line)
-			entry.Date = toDate(line)
+			entry.Id = toIdWithBasename(line)
 			continue
 		}
 
@@ -76,6 +77,12 @@ func split(filename, outdir string) {
 			entry.Title = toTitle(line)
 			continue
 		}
+
+		if strings.HasPrefix(line, "DATE: ") {
+			entry.Date = toTimeWithDate(line)
+			continue
+		}
+
 
 		if strings.HasPrefix(line, "BODY:") {
 			isInBody = true
